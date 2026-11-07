@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install pytest Pillow
+      - run: pytest -v
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Asegurar el OCR de Windows en inglés
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ocr = Get-WindowsCapability -Online | Where-Object Name -like 'Language.OCR*en-US*'
+          $ocr | Format-Table Name, State
+          if ($ocr.State -ne 'Installed') { Add-WindowsCapability -Online -Name $ocr.Name }
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -v

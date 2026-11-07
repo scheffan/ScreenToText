@@ -1,0 +1,5 @@
+# Para Linux y macOS, o si preferís EasyOCR en Windows.
+# Ojo: instala PyTorch, son unos 2 GB.
+-r requirements.txt
+easyocr>=1.7
+numpy

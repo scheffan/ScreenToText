@@ -1,6 +1,14 @@
-easyocr
-pyautogui
-pyperclip
-Pillow
-opencv-python
-numpy
+mss>=10.0
+Pillow>=10.0
+pyperclip>=1.9
+pynput>=1.8
+pystray>=0.19
+
+# OCR de Windows (viene con Windows 10/11, no descarga modelos)
+winrt-runtime>=3.0; sys_platform == "win32"
+winrt-Windows.Foundation>=3.0; sys_platform == "win32"
+winrt-Windows.Foundation.Collections>=3.0; sys_platform == "win32"
+winrt-Windows.Globalization>=3.0; sys_platform == "win32"
+winrt-Windows.Graphics.Imaging>=3.0; sys_platform == "win32"
+winrt-Windows.Media.Ocr>=3.0; sys_platform == "win32"
+winrt-Windows.Storage.Streams>=3.0; sys_platform == "win32"
