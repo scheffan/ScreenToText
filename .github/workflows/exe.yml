@@ -1,0 +1,50 @@
+name: Compilar .exe
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Asegurar el OCR de Windows en inglés
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ocr = Get-WindowsCapability -Online | Where-Object Name -like 'Language.OCR*en-US*'
+          if ($ocr.State -ne 'Installed') { Add-WindowsCapability -Online -Name $ocr.Name }
+      - run: pip install -r requirements.txt pyinstaller
+      - name: Ícono
+        run: python -m screentotext.iconos icono.ico
+      - name: Compilar
+        run: >
+          pyinstaller screen_to_text.py --onefile --windowed --name ScreenToText
+          --icon icono.ico --collect-all winrt --collect-submodules pystray --collect-submodules pynput
+      - name: Probar el .exe con una imagen
+        shell: pwsh
+        run: |
+          python -c "from PIL import Image, ImageDraw, ImageFont; img = Image.new('RGB', (700, 120), 'white'); ImageDraw.Draw(img).text((20, 30), 'Hello from the exe', fill='black', font=ImageFont.truetype('arial.ttf', 40)); img.save('prueba.png')"
+          Start-Process -FilePath dist\ScreenToText.exe -ArgumentList '--imagen', 'prueba.png', '--salida', 'salida.txt' -Wait
+          $texto = Get-Content salida.txt -Raw
+          Write-Output "Leído: $texto"
+          if ($texto -notmatch 'Hello') { throw "El .exe no leyó el texto" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScreenToText-exe
+          path: dist/ScreenToText.exe
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/ScreenToText.exe
+          generate_release_notes: true
